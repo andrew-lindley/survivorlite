@@ -1,0 +1,14 @@
+{
+  "name": "survivor-game",
+  "version": "1.0.0",
+  "description": "A Vampire Survivors-style mobile game",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve . -l 3000"
+  },
+  "keywords": ["game", "phaser", "mobile", "survivor"],
+  "license": "MIT",
+  "dependencies": {}
+}
+
