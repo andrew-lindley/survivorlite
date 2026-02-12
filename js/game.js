@@ -780,8 +780,7 @@ class BootScene extends Phaser.Scene {
         const subtitleY = isPortrait ? height * 0.16 : height * 0.20;
         const shipY = height * 0.45; // Ship centered vertically
         const instructY = isPortrait ? height * 0.72 : height * 0.72;
-        const toggleY = isPortrait ? height * 0.82 : height * 0.82;
-        const buttonY = isPortrait ? height * 0.92 : height * 0.92;
+        const buttonY = isPortrait ? height * 0.85 : height * 0.85;
         
         // Nebula glow behind ship
         const nebulaSize = isPortrait ? 250 : 300;
@@ -936,9 +935,6 @@ class BootScene extends Phaser.Scene {
             duration: 500,
             delay: 800
         });
-
-        // Orientation toggle
-        this.createOrientationToggle(width, toggleY);
 
         // Launch button with glow
         const buttonGlow = this.add.rectangle(width / 2, buttonY, 200, 50, 0xffffff, 0.2);
@@ -1290,117 +1286,6 @@ class BootScene extends Phaser.Scene {
         return elements;
     }
 
-    createOrientationToggle(width, toggleY) {
-        
-        // Label
-        this.add.text(width / 2, toggleY - 20, 'ORIENTATION', {
-            fontSize: '10px',
-            fontFamily: 'Courier New',
-            color: '#667799',
-        }).setOrigin(0.5);
-        
-        // Toggle container
-        const toggleWidth = 160;
-        const toggleHeight = 36;
-        const toggleBg = this.add.rectangle(width / 2, toggleY, toggleWidth, toggleHeight, 0x1a1a2e);
-        toggleBg.setStrokeStyle(2, 0xffffff, 0.5);
-        
-        // Landscape option (left)
-        const landscapeBtn = this.add.rectangle(
-            width / 2 - toggleWidth / 4, toggleY,
-            toggleWidth / 2 - 4, toggleHeight - 6,
-            currentOrientation === 'landscape' ? 0xffffff : 0x333344
-        );
-        landscapeBtn.setInteractive({ useHandCursor: true });
-        
-        const landscapeIcon = this.add.text(
-            width / 2 - toggleWidth / 4, toggleY,
-            '⬜', // Wide rectangle icon
-            {
-                fontSize: '18px',
-                fontFamily: 'Courier New',
-                color: currentOrientation === 'landscape' ? '#ffffff' : '#667799',
-            }
-        ).setOrigin(0.5);
-        
-        // Portrait option (right)
-        const portraitBtn = this.add.rectangle(
-            width / 2 + toggleWidth / 4, toggleY,
-            toggleWidth / 2 - 4, toggleHeight - 6,
-            currentOrientation === 'portrait' ? 0xffffff : 0x333344
-        );
-        portraitBtn.setInteractive({ useHandCursor: true });
-        
-        const portraitIcon = this.add.text(
-            width / 2 + toggleWidth / 4, toggleY,
-            '▯', // Tall rectangle icon
-            {
-                fontSize: '20px',
-                fontFamily: 'Courier New',
-                color: currentOrientation === 'portrait' ? '#ffffff' : '#667799',
-            }
-        ).setOrigin(0.5);
-        
-        // Hover effects
-        landscapeBtn.on('pointerover', () => {
-            if (currentOrientation !== 'landscape') {
-                landscapeBtn.setFillStyle(0x333344);
-            }
-        });
-        landscapeBtn.on('pointerout', () => {
-            if (currentOrientation !== 'landscape') {
-                landscapeBtn.setFillStyle(0x222233);
-            }
-        });
-        
-        portraitBtn.on('pointerover', () => {
-            if (currentOrientation !== 'portrait') {
-                portraitBtn.setFillStyle(0x333344);
-            }
-        });
-        portraitBtn.on('pointerout', () => {
-            if (currentOrientation !== 'portrait') {
-                portraitBtn.setFillStyle(0x222233);
-            }
-        });
-        
-        // Click handlers
-        landscapeBtn.on('pointerdown', () => {
-            if (currentOrientation !== 'landscape') {
-                setGameOrientation('landscape');
-                this.cameras.main.flash(100, 68, 136, 255, false);
-                // Reload the page to fully apply new dimensions
-                this.time.delayedCall(150, () => {
-                    window.location.reload();
-                });
-            }
-        });
-        
-        portraitBtn.on('pointerdown', () => {
-            if (currentOrientation !== 'portrait') {
-                setGameOrientation('portrait');
-                this.cameras.main.flash(100, 68, 136, 255, false);
-                // Reload the page to fully apply new dimensions
-                this.time.delayedCall(150, () => {
-                    window.location.reload();
-                });
-            }
-        });
-        
-        // Entrance animation
-        toggleBg.setAlpha(0);
-        landscapeBtn.setAlpha(0);
-        portraitBtn.setAlpha(0);
-        landscapeIcon.setAlpha(0);
-        portraitIcon.setAlpha(0);
-        
-        this.tweens.add({
-            targets: [toggleBg, landscapeBtn, portraitBtn, landscapeIcon, portraitIcon],
-            alpha: 1,
-            duration: 300,
-            delay: 700
-        });
-    }
     
     update(time, delta) {
         const height = this.cameras.main.height;
@@ -2205,6 +2090,17 @@ class ShopScene extends Phaser.Scene {
     }
 }
 
+// Detect initial orientation BEFORE creating the game
+// This ensures the game starts with correct dimensions
+(function setInitialOrientation() {
+    const isLandscape = window.innerWidth > window.innerHeight;
+    const detectedOrientation = isLandscape ? 'landscape' : 'portrait';
+    if (detectedOrientation !== currentOrientation) {
+        setGameOrientation(detectedOrientation);
+        console.log(`Initial orientation set to: ${detectedOrientation}`);
+    }
+})();
+
 // Game Configuration
 const config = {
     type: Phaser.AUTO,
@@ -2254,23 +2150,16 @@ const game = new Phaser.Game(config);
             // Refresh the scale manager to recalculate positioning
             game.scale.refresh();
             
-            // Notify the current scene about the orientation change
+            // Restart the current scene to re-layout UI properly
             const currentScene = game.scene.getScenes(true)[0];
-            if (currentScene && currentScene.handleOrientationChange) {
-                currentScene.handleOrientationChange(newOrientation);
+            if (currentScene) {
+                const sceneKey = currentScene.scene.key;
+                // Don't restart GameScene during active gameplay to avoid losing progress
+                if (sceneKey !== 'GameScene') {
+                    currentScene.scene.restart();
+                }
             }
         }
-    }
-    
-    // Set initial orientation based on current screen
-    const initialOrientation = detectOrientation();
-    if (initialOrientation !== currentOrientation) {
-        setGameOrientation(initialOrientation);
-        // Resize immediately if needed
-        game.events.once('ready', () => {
-            game.scale.resize(GAME_CONFIG.width, GAME_CONFIG.height);
-            game.scale.refresh();
-        });
     }
     
     // Listen for orientation changes using multiple methods for compatibility
