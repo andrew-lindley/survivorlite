@@ -45,9 +45,16 @@ class GameScene extends Phaser.Scene {
         
         // Gems collected this run (XP becomes gems)
         this.gemsCollected = 0;
+        this.waitingForClear = false;
 
-        // Player starts with base laser weapon - no initial weapon selection needed
-        // First weapon choice comes when player levels up
+        // Spawn boss if this level has one
+        if (this.levelConfig.hasBoss) {
+            const cx = GAME_CONFIG.worldWidth / 2;
+            const cy = GAME_CONFIG.worldHeight / 2 - 400 * PIXEL_SCALE;
+            const levelHealthMult = this.levelConfig.enemyHealthMultiplier;
+            const levelDamageMult = this.levelConfig.enemyDamageMultiplier;
+            this.enemyManager.spawnBoss(cx, cy, levelHealthMult, levelDamageMult);
+        }
 
         // Show first wave
         this.ui.showWaveAnnouncement(1);
@@ -296,6 +303,9 @@ class GameScene extends Phaser.Scene {
             // Track as gems (1 XP = 1 gem, before multiplier)
             this.gemsCollected += collectedXP;
             
+            // Each gem heals the player for 0.5 HP
+            this.hero.heal(collectedXP * 0.5);
+            
             // Play pickup sound (randomize pitch slightly)
             Assets.playSound('xpPickup', { volume: 0.3, rate: 0.9 + Math.random() * 0.2 });
             
@@ -322,6 +332,7 @@ class GameScene extends Phaser.Scene {
 
         // Check game over
         if (this.hero.health <= 0) {
+            this.enemyManager.playExplosion(this.hero.x, this.hero.y, 2);
             this.endGame(false);
         }
     }
@@ -342,10 +353,21 @@ class GameScene extends Phaser.Scene {
     }
 
     updateWave(time) {
+        // If waiting for all enemies to be cleared (boss level final phase)
+        if (this.waitingForClear) {
+            const remaining = this.enemyManager.enemies.getLength();
+            const totalWaves = this.levelConfig ? this.levelConfig.waves : WAVE_CONFIG.totalWaves;
+            this.ui.updateWave(this.currentWave, totalWaves, 0, remaining);
+            if (remaining === 0) {
+                this.waitingForClear = false;
+                this.endGame(true);
+            }
+            return;
+        }
+
         const waveElapsed = time - this.waveStartTime;
         const timeRemaining = Math.max(0, WAVE_CONFIG.waveDuration - waveElapsed);
 
-        // Update UI - use level-specific wave count
         const totalWaves = this.levelConfig ? this.levelConfig.waves : WAVE_CONFIG.totalWaves;
         this.ui.updateWave(
             this.currentWave,
@@ -383,9 +405,10 @@ class GameScene extends Phaser.Scene {
         const waveMultiplier = 1 + (this.currentWave - 1) * 0.15;
 
         for (let i = 0; i < spawnCount; i++) {
-            const pos = this.enemyManager.getSpawnPosition(this.hero);
+            // Spawn from boss if one is alive, otherwise normal spawn
+            const bossPos = this.enemyManager.getBossSpawnPosition();
+            const pos = bossPos || this.enemyManager.getSpawnPosition(this.hero);
             const type = this.enemyManager.getRandomEnemyType(this.currentWave);
-            // Pass level multipliers to enemy spawning
             this.enemyManager.spawnEnemy(type, pos.x, pos.y, waveMultiplier, levelHealthMult, levelDamageMult, levelSpeedMult);
         }
     }
@@ -395,7 +418,11 @@ class GameScene extends Phaser.Scene {
 
         const totalWaves = this.levelConfig ? this.levelConfig.waves : WAVE_CONFIG.totalWaves;
         if (this.currentWave > totalWaves) {
-            this.endGame(true);
+            if (this.levelConfig?.hasBoss && this.enemyManager.enemies.getLength() > 0) {
+                this.waitingForClear = true;
+            } else {
+                this.endGame(true);
+            }
             return;
         }
 
@@ -1595,7 +1622,7 @@ class LevelSelectScene extends Phaser.Scene {
                 this.cameras.main.flash(200, 68, 136, 255, false);
                 this.cameras.main.fade(400, 0, 0, 0);
                 this.time.delayedCall(400, () => {
-                    this.scene.start('GameScene', { level: levelNum });
+                    this.scene.start('IntroVideoScene', { level: levelNum });
                 });
             });
         }
@@ -1717,7 +1744,7 @@ class LevelSelectScene extends Phaser.Scene {
                 this.cameras.main.flash(200, 68, 136, 255, false);
                 this.cameras.main.fade(400, 0, 0, 0);
                 this.time.delayedCall(400, () => {
-                    this.scene.start('GameScene', { level: levelNum });
+                    this.scene.start('IntroVideoScene', { level: levelNum });
                 });
             });
         }
@@ -2101,6 +2128,86 @@ class ShopScene extends Phaser.Scene {
     }
 })();
 
+// Intro Video Scene — plays an MP4 before entering a level
+class IntroVideoScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'IntroVideoScene' });
+    }
+
+    init(data) {
+        this.targetLevel = data.level || 1;
+    }
+
+    create() {
+        const levelConfig = LEVELS[this.targetLevel];
+        const videoPath = levelConfig?.introVideo;
+
+        if (!videoPath) {
+            this.scene.start('GameScene', { level: this.targetLevel });
+            return;
+        }
+
+        const overlay = document.getElementById('intro-video-overlay');
+        const video = document.getElementById('intro-video');
+
+        // Test if the video file exists before trying to play
+        const testReq = new XMLHttpRequest();
+        testReq.open('HEAD', videoPath, true);
+        testReq.onload = () => {
+            if (testReq.status >= 200 && testReq.status < 400) {
+                this.playVideo(overlay, video, videoPath);
+            } else {
+                this.scene.start('GameScene', { level: this.targetLevel });
+            }
+        };
+        testReq.onerror = () => {
+            this.scene.start('GameScene', { level: this.targetLevel });
+        };
+        testReq.send();
+    }
+
+    playVideo(overlay, video, videoPath) {
+        overlay.classList.add('active');
+        video.src = videoPath;
+        video.currentTime = 0;
+
+        let ended = false;
+        const finish = () => {
+            if (ended) return;
+            ended = true;
+            video.pause();
+            video.removeAttribute('src');
+            video.load();
+            overlay.classList.remove('active');
+            this.scene.start('GameScene', { level: this.targetLevel });
+        };
+
+        video.onended = finish;
+        video.onerror = finish;
+
+        // Tap/click to skip
+        const skipHandler = () => {
+            finish();
+            overlay.removeEventListener('pointerdown', skipHandler);
+        };
+        overlay.addEventListener('pointerdown', skipHandler);
+
+        // Keyboard skip (ESC or Space)
+        const keyHandler = (e) => {
+            if (e.code === 'Escape' || e.code === 'Space') {
+                finish();
+                document.removeEventListener('keydown', keyHandler);
+            }
+        };
+        document.addEventListener('keydown', keyHandler);
+
+        video.play().catch(() => {
+            // Autoplay blocked (no user gesture) — skip to game
+            finish();
+        });
+    }
+}
+
 // Game Configuration
 const config = {
     type: Phaser.AUTO,
@@ -2119,7 +2226,7 @@ const config = {
             debug: false,
         },
     },
-    scene: [BootScene, LevelSelectScene, ShopScene, GameScene],
+    scene: [BootScene, LevelSelectScene, ShopScene, IntroVideoScene, GameScene],
 };
 
 // Create game instance

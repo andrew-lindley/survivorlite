@@ -4,75 +4,192 @@ class EnemyManager {
         this.scene = scene;
         this.enemies = scene.add.group();
         this.xpGems = scene.add.group();
+        this.explosionAnimCreated = false;
+    }
+
+    playExplosion(x, y, scale = 1) {
+        const spriteKey = Assets.getAsset('spritesheets', 'explosionAnimated');
+        if (!spriteKey) return;
+
+        if (!this.explosionAnimCreated) {
+            this.scene.anims.create({
+                key: 'explosion_play',
+                frames: this.scene.anims.generateFrameNumbers(spriteKey, { start: 0, end: 5 }),
+                frameRate: 12,
+                repeat: 0
+            });
+            this.explosionAnimCreated = true;
+        }
+
+        const explosion = this.scene.add.sprite(x, y, spriteKey);
+        explosion.setScale(scale);
+        explosion.setDepth(100);
+        explosion.play('explosion_play');
+        explosion.once('animationcomplete', () => explosion.destroy());
+    }
+
+    buildBossShip(config, container) {
+        const size = config.size;
+        const parts = {};
+        const level = this.scene.currentLevel || 1;
+        
+        // Resolve sprite: level-specific animated → base animated → level-specific static → base static
+        const levelAnimKey = `level${level}_bossAnimated`;
+        const baseAnimKey = 'bossAnimated';
+        
+        const animatedSpriteKey = Assets.getAsset('spritesheets', levelAnimKey)
+                               || Assets.getAsset('spritesheets', baseAnimKey);
+        if (animatedSpriteKey) {
+            const sheetConfigKey = Assets.hasAsset(ASSET_CONFIG.spritesheets[levelAnimKey]?.key)
+                ? levelAnimKey : baseAnimKey;
+            
+            parts.sprite = this.scene.add.sprite(0, 0, animatedSpriteKey);
+            const frameSize = ASSET_CONFIG.spritesheets[sheetConfigKey].frameWidth;
+            parts.sprite.setScale((size * 2) / (frameSize / 4));
+            
+            const animKey = `boss_fly_l${level}`;
+            if (!this.scene.anims.exists(animKey)) {
+                this.scene.anims.create({
+                    key: animKey,
+                    frames: this.scene.anims.generateFrameNumbers(animatedSpriteKey, { start: 0, end: 5 }),
+                    frameRate: 6,
+                    repeat: -1
+                });
+            }
+            parts.sprite.play(animKey);
+            
+            parts.body = parts.sprite;
+            container.add([parts.sprite]);
+            return parts;
+        }
+        
+        const levelStaticKey = `level${level}_boss`;
+        const spriteKey = Assets.getAsset('enemies', levelStaticKey)
+                       || Assets.getAsset('enemies', 'boss');
+        if (spriteKey) {
+            parts.sprite = this.scene.add.sprite(0, 0, spriteKey);
+            parts.sprite.setScale((size * 2) / 64);
+            
+            parts.body = parts.sprite;
+            container.add([parts.sprite]);
+            return parts;
+        }
+        
+        // Fallback: procedural boss visual
+        const aura = this.scene.add.circle(0, 0, size * 2.2, config.glowColor, 0.08);
+        container.add(aura);
+        this.scene.tweens.add({
+            targets: aura,
+            scale: 1.3, alpha: 0.03,
+            duration: 2000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut'
+        });
+        
+        const glow = this.scene.add.circle(0, 0, size * 1.5, config.glowColor, 0.2);
+        container.add(glow);
+        
+        for (let i = 3; i >= 0; i--) {
+            const ringSize = size * (0.5 + i * 0.2);
+            const alpha = 0.4 + (3 - i) * 0.15;
+            const ring = this.scene.add.circle(0, 0, ringSize, config.color, alpha);
+            ring.setStrokeStyle(2, config.glowColor, 0.6);
+            container.add(ring);
+        }
+        
+        const eye = this.scene.add.circle(0, 0, size * 0.3, config.eyeColor, 0.9);
+        eye.setStrokeStyle(3, 0xffffff, 0.5);
+        container.add(eye);
+        
+        const eyeInner = this.scene.add.circle(0, 0, size * 0.15, 0xffffff, 0.7);
+        container.add(eyeInner);
+        
+        const tentacleCount = 8;
+        for (let i = 0; i < tentacleCount; i++) {
+            const angle = (i / tentacleCount) * Math.PI * 2;
+            const tx = Math.cos(angle) * size * 0.9;
+            const ty = Math.sin(angle) * size * 0.9;
+            const tentacle = this.scene.add.circle(tx, ty, size * 0.12, config.glowColor, 0.6);
+            container.add(tentacle);
+            
+            this.scene.tweens.add({
+                targets: tentacle,
+                x: Math.cos(angle) * size * 1.1,
+                y: Math.sin(angle) * size * 1.1,
+                alpha: 0.3,
+                duration: 1000 + Math.random() * 500,
+                yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+                delay: i * 100
+            });
+        }
+        
+        this.scene.tweens.add({
+            targets: eye, scale: 1.3, alpha: 0.6,
+            duration: 800, yoyo: true, repeat: -1, ease: 'Sine.easeInOut'
+        });
+        this.scene.tweens.add({
+            targets: eyeInner, scale: 0.5, alpha: 1,
+            duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut'
+        });
+        
+        return { glow, body: eye, engineLight: eyeInner };
     }
 
     buildAlienShip(type, config, container) {
         const parts = {};
+        const level = this.scene.currentLevel || 1;
         
-        // Map enemy types to asset names
         const assetMap = {
             'basic': 'scout',
             'fast': 'interceptor', 
             'tank': 'destroyer'
         };
+        const baseName = assetMap[type];
         
-        // Map enemy types to animated spritesheet names
-        const animatedAssetMap = {
-            'basic': 'scoutAnimated',
-            'fast': 'interceptorAnimated',
-            'tank': 'destroyerAnimated'
-        };
+        // Resolve sprite: level-specific animated → base animated → level-specific static → base static
+        const levelAnimKey = `level${level}_${baseName}Animated`;
+        const baseAnimKey = `${baseName}Animated`;
+        const levelStaticKey = `level${level}_${baseName}`;
+        const baseStaticKey = baseName;
         
-        // First check if animated sprite sheet is available
-        const animatedSpriteKey = Assets.getAsset('spritesheets', animatedAssetMap[type]);
+        const animatedSpriteKey = Assets.getAsset('spritesheets', levelAnimKey)
+                               || Assets.getAsset('spritesheets', baseAnimKey);
         
         if (animatedSpriteKey) {
-            // Use animated sprite sheet
+            const sheetConfigKey = Assets.hasAsset(ASSET_CONFIG.spritesheets[levelAnimKey]?.key)
+                ? levelAnimKey : baseAnimKey;
+            
             parts.sprite = this.scene.add.sprite(0, 0, animatedSpriteKey);
+            const frameSize = ASSET_CONFIG.spritesheets[sheetConfigKey].frameWidth;
+            parts.sprite.setScale(config.size / (frameSize / 4));
             
-            // Get frame size from config for proper scaling
-            const frameSize = ASSET_CONFIG.spritesheets[animatedAssetMap[type]].frameWidth;
-            parts.sprite.setScale(config.size / (frameSize / 4));  // Doubled size
-            
-            // Create animation if it doesn't exist yet (2 rows x 3 cols = 6 frames)
-            const animKey = `${assetMap[type]}_fly`;
+            const animKey = `${baseName}_fly_l${level}`;
             if (!this.scene.anims.exists(animKey)) {
                 this.scene.anims.create({
                     key: animKey,
                     frames: this.scene.anims.generateFrameNumbers(animatedSpriteKey, { start: 0, end: 5 }),
                     frameRate: 10,
-                    repeat: -1  // Loop forever
+                    repeat: -1
                 });
             }
-            
-            // Play the animation
             parts.sprite.play(animKey);
             
-            parts.glow = this.scene.add.circle(0, 0, config.size * 0.8, config.glowColor, 0.3);
-            parts.engineLight = this.scene.add.circle(0, config.size * 0.5, config.size * 0.3, config.eyeColor, 0.7);
-            parts.body = parts.sprite; // Reference sprite as body for compatibility
-            container.add([parts.glow, parts.sprite, parts.engineLight]);
+            parts.body = parts.sprite;
+            container.add([parts.sprite]);
             return parts;
         }
         
-        // Fall back to static sprite if available
-        const spriteKey = Assets.getAsset('enemies', assetMap[type]);
+        const spriteKey = Assets.getAsset('enemies', levelStaticKey)
+                       || Assets.getAsset('enemies', baseStaticKey);
         
         if (spriteKey) {
-            // Use sprite-based enemy
             parts.sprite = this.scene.add.sprite(0, 0, spriteKey);
-            parts.sprite.setScale(config.size / 16); // Adjust scale based on sprite size
-            parts.glow = this.scene.add.circle(0, 0, config.size * 0.8, config.glowColor, 0.3);
-            parts.engineLight = this.scene.add.circle(0, config.size * 0.5, config.size * 0.3, config.eyeColor, 0.7);
-            parts.body = parts.sprite; // Reference sprite as body for compatibility
-            container.add([parts.glow, parts.sprite, parts.engineLight]);
+            parts.sprite.setScale(config.size / 16);
+            parts.body = parts.sprite;
+            container.add([parts.sprite]);
             return parts;
         }
         
-        // No sprite available - show placeholder
-        console.warn(`No enemy sprite found for type: ${type}. Add assets/images/enemies/${assetMap[type]}.png`);
+        console.warn(`No enemy sprite found for type: ${type}. Add assets/images/enemies/${baseName}.png or assets/images/enemies/level${level}/${baseName}.png`);
         
-        // Simple placeholder so game can still run
         parts.glow = this.scene.add.circle(0, 0, config.size * 0.8, config.glowColor, 0.3);
         parts.body = this.scene.add.circle(0, 0, config.size, config.color, 0.6);
         parts.body.setStrokeStyle(2, config.glowColor, 0.8);
@@ -86,26 +203,27 @@ class EnemyManager {
         const config = ENEMY_TYPES[type];
         if (!config) return null;
 
-        // Create enemy container for layered graphics
+        // Apply per-level size override if defined
+        const levelConfig = this.scene.levelConfig;
+        const sizeScale = (levelConfig?.enemySizeOverrides?.[type]) || 1;
+        const scaledSize = config.size * sizeScale;
+
         const container = this.scene.add.container(x, y);
         
-        // Build alien ship based on type
-        const shipParts = this.buildAlienShip(type, config, container);
+        const effectiveConfig = sizeScale !== 1 ? { ...config, size: scaledSize } : config;
+        const shipParts = this.buildAlienShip(type, effectiveConfig, container);
         
-        // Store references for animations
         container.glow = shipParts.glow;
         container.body = shipParts.body;
         container.engineLight = shipParts.engineLight;
         
-        // Create invisible physics body
-        const enemy = this.scene.add.circle(x, y, config.size, 0x000000, 0);
+        const enemy = this.scene.add.circle(x, y, scaledSize, 0x000000, 0);
         this.scene.physics.add.existing(enemy);
-        enemy.body.setCircle(config.size);
+        enemy.body.setCircle(scaledSize);
 
-        // Enemy properties - apply both wave and level multipliers
-        enemy.id = Date.now() + Math.random(); // Unique ID for tracking
+        enemy.id = Date.now() + Math.random();
         enemy.container = container;
-        enemy.radius = config.size;
+        enemy.radius = scaledSize;
         enemy.enemyType = type;
         enemy.maxHealth = Math.floor(config.health * waveMultiplier * levelHealthMult);
         enemy.health = enemy.maxHealth;
@@ -147,6 +265,58 @@ class EnemyManager {
         }
 
         this.enemies.add(enemy);
+        return enemy;
+    }
+
+    spawnBoss(x, y, levelHealthMult = 1, levelDamageMult = 1) {
+        const config = ENEMY_TYPES.boss;
+        
+        const container = this.scene.add.container(x, y);
+        const shipParts = this.buildBossShip(config, container);
+        
+        container.glow = shipParts.glow;
+        container.body = shipParts.body;
+        container.engineLight = shipParts.engineLight;
+        
+        const enemy = this.scene.add.circle(x, y, config.size, 0x000000, 0);
+        this.scene.physics.add.existing(enemy);
+        enemy.body.setCircle(config.size);
+        
+        enemy.id = Date.now() + Math.random();
+        enemy.container = container;
+        enemy.radius = config.size;
+        enemy.enemyType = 'boss';
+        enemy.isBoss = true;
+        enemy.maxHealth = Math.floor(config.health * levelHealthMult);
+        enemy.health = enemy.maxHealth;
+        enemy.damage = Math.floor(config.damage * levelDamageMult);
+        enemy.baseSpeed = config.speed;
+        enemy.speed = enemy.baseSpeed;
+        enemy.xpValue = config.xpValue;
+        enemy.slowedUntil = 0;
+        enemy.slowAmount = 0;
+        enemy.anchorX = x;
+        enemy.anchorY = y;
+        
+        enemy.healthBar = this.scene.add.graphics();
+        this.updateHealthBar(enemy);
+        
+        enemy.takeDamage = (amount) => this.enemyTakeDamage(enemy, amount);
+        enemy.applySlow = (amount, duration) => this.applySlowToEnemy(enemy, amount, duration);
+        
+        // Dramatic spawn animation
+        container.setScale(0);
+        container.setAlpha(0);
+        this.scene.tweens.add({
+            targets: container,
+            scale: 1,
+            alpha: 1,
+            duration: 1500,
+            ease: 'Power2'
+        });
+        
+        this.enemies.add(enemy);
+        this.boss = enemy;
         return enemy;
     }
 
@@ -231,62 +401,164 @@ class EnemyManager {
         const x = enemy.x;
         const y = enemy.y;
         const config = ENEMY_TYPES[enemy.enemyType];
+        const isBoss = enemy.isBoss;
         
-        // Play death sound
+        if (isBoss) {
+            this.boss = null;
+        }
+        
+        if (isBoss) {
+            this.playBossDeathSequence(enemy, x, y, config);
+            return;
+        }
+        
         Assets.playSound('enemyDeath', { volume: 0.3, rate: 0.8 + Math.random() * 0.4 });
-        
-        // Spawn XP gem
         this.spawnXPGem(x, y, enemy.xpValue);
         
-        // Death burst effect - outer ring
         const ring = this.scene.add.circle(x, y, enemy.radius, 0x000000, 0);
         ring.setStrokeStyle(3, config.color, 1);
         this.scene.tweens.add({
-            targets: ring,
-            scale: 3,
-            alpha: 0,
-            duration: 300,
-            ease: 'Power2',
+            targets: ring, scale: 3, alpha: 0,
+            duration: 300, ease: 'Power2',
             onComplete: () => ring.destroy()
         });
         
-        // Death particles
         for (let i = 0; i < 12; i++) {
             const angle = (i / 12) * Math.PI * 2 + Math.random() * 0.3;
             const dist = 40 + Math.random() * 30;
             const size = 3 + Math.random() * 5;
-            
             const particle = this.scene.add.circle(x, y, size, config.color, 1);
             particle.setStrokeStyle(1, config.glowColor, 0.8);
-            
             this.scene.tweens.add({
                 targets: particle,
                 x: x + Math.cos(angle) * dist,
                 y: y + Math.sin(angle) * dist,
-                alpha: 0,
-                scale: 0,
-                duration: 350,
-                ease: 'Power2',
+                alpha: 0, scale: 0,
+                duration: 350, ease: 'Power2',
                 onComplete: () => particle.destroy()
             });
         }
 
-        // Inner glow burst
         const glow = this.scene.add.circle(x, y, enemy.radius * 0.5, config.glowColor, 0.8);
         this.scene.tweens.add({
-            targets: glow,
-            scale: 2,
-            alpha: 0,
+            targets: glow, scale: 2, alpha: 0,
             duration: 200,
             onComplete: () => glow.destroy()
         });
 
-        // Destroy container and health bar
+        const explosionScale = enemy.radius / (32 * PIXEL_SCALE) + 0.5;
+        this.playExplosion(x, y, explosionScale);
+
         if (enemy.container) {
             enemy.container.destroy();
         }
         enemy.healthBar.destroy();
         enemy.destroy();
+    }
+
+    playBossDeathSequence(enemy, x, y, config) {
+        // Disable the boss so it can't deal damage during death sequence
+        enemy.body.setVelocity(0, 0);
+        enemy.damage = 0;
+
+        const bossRadius = config.size;
+        const totalDuration = 2500;
+        const explosionCount = 14;
+        const flashCount = 6;
+
+        // Phase 1: Rapid white flashing on the boss container
+        if (enemy.container) {
+            for (let i = 0; i < flashCount; i++) {
+                this.scene.time.delayedCall(i * 150, () => {
+                    if (!enemy.container) return;
+                    const flash = this.scene.add.circle(
+                        enemy.container.x, enemy.container.y,
+                        bossRadius * 1.2, 0xffffff, 0.7
+                    );
+                    flash.setDepth(99);
+                    this.scene.tweens.add({
+                        targets: flash, alpha: 0, scale: 1.3,
+                        duration: 120,
+                        onComplete: () => flash.destroy()
+                    });
+                });
+            }
+        }
+
+        // Phase 2: Small explosions scattered across the boss body
+        for (let i = 0; i < explosionCount; i++) {
+            const delay = 200 + Math.random() * (totalDuration - 600);
+            this.scene.time.delayedCall(delay, () => {
+                const ox = x + (Math.random() - 0.5) * bossRadius * 1.8;
+                const oy = y + (Math.random() - 0.5) * bossRadius * 1.8;
+                this.playExplosion(ox, oy, 0.8 + Math.random() * 0.6);
+                Assets.playSound('enemyDeath', { volume: 0.2, rate: 0.7 + Math.random() * 0.6 });
+
+                // Small camera shake per explosion
+                this.scene.cameras.main.shake(80, 0.005);
+            });
+        }
+
+        // Phase 3: Final big explosion + cleanup
+        this.scene.time.delayedCall(totalDuration, () => {
+            Assets.playSound('enemyDeath', { volume: 0.8, rate: 0.5 });
+
+            // Shower of gems
+            for (let i = 0; i < 10; i++) {
+                const ox = x + (Math.random() - 0.5) * bossRadius * 2;
+                const oy = y + (Math.random() - 0.5) * bossRadius * 2;
+                this.spawnXPGem(ox, oy, Math.floor(enemy.xpValue / 10));
+            }
+
+            // Big shockwave rings
+            for (let r = 0; r < 3; r++) {
+                const shockRing = this.scene.add.circle(x, y, bossRadius * 0.5, 0x000000, 0);
+                shockRing.setStrokeStyle(4, config.glowColor, 0.9);
+                this.scene.tweens.add({
+                    targets: shockRing,
+                    scale: 8 + r * 2, alpha: 0,
+                    duration: 600 + r * 200,
+                    delay: r * 100,
+                    ease: 'Power2',
+                    onComplete: () => shockRing.destroy()
+                });
+            }
+
+            // Final burst particles
+            for (let i = 0; i < 30; i++) {
+                const angle = (i / 30) * Math.PI * 2 + Math.random() * 0.3;
+                const dist = 100 + Math.random() * 60;
+                const size = 4 + Math.random() * 6;
+                const particle = this.scene.add.circle(x, y, size, config.color, 1);
+                particle.setStrokeStyle(1, config.glowColor, 0.8);
+                this.scene.tweens.add({
+                    targets: particle,
+                    x: x + Math.cos(angle) * dist,
+                    y: y + Math.sin(angle) * dist,
+                    alpha: 0, scale: 0,
+                    duration: 600, ease: 'Power2',
+                    onComplete: () => particle.destroy()
+                });
+            }
+
+            // Final big flash + camera effects
+            const finalGlow = this.scene.add.circle(x, y, bossRadius, 0xffffff, 0.9);
+            finalGlow.setDepth(100);
+            this.scene.tweens.add({
+                targets: finalGlow, scale: 6, alpha: 0,
+                duration: 500,
+                onComplete: () => finalGlow.destroy()
+            });
+            this.scene.cameras.main.shake(600, 0.03);
+            this.scene.cameras.main.flash(400, 255, 200, 200);
+
+            // Destroy boss
+            if (enemy.container) {
+                enemy.container.destroy();
+            }
+            enemy.healthBar.destroy();
+            enemy.destroy();
+        });
     }
 
     spawnXPGem(x, y, value) {
@@ -440,24 +712,53 @@ class EnemyManager {
                 enemy.speed = enemy.baseSpeed * (1 - enemy.slowAmount);
             }
 
-            // Move toward hero
-            const angle = Phaser.Math.Angle.Between(
-                enemy.x, enemy.y,
-                hero.x, hero.y
-            );
-            
-            enemy.body.setVelocity(
-                Math.cos(angle) * enemy.speed,
-                Math.sin(angle) * enemy.speed
-            );
-            
-            // Sync container position and rotation
-            if (enemy.container) {
-                enemy.container.x = enemy.x;
-                enemy.container.y = enemy.y;
+            if (enemy.isBoss) {
+                // Boss wanders gently near its anchor point
+                const driftDist = Phaser.Math.Distance.Between(
+                    enemy.x, enemy.y, enemy.anchorX, enemy.anchorY
+                );
+                const leashRadius = 120 * PIXEL_SCALE;
+                if (driftDist > leashRadius) {
+                    const returnAngle = Phaser.Math.Angle.Between(
+                        enemy.x, enemy.y, enemy.anchorX, enemy.anchorY
+                    );
+                    enemy.body.setVelocity(
+                        Math.cos(returnAngle) * enemy.speed * 1.5,
+                        Math.sin(returnAngle) * enemy.speed * 1.5
+                    );
+                } else {
+                    // Layered sine waves for organic-feeling lateral + vertical drift
+                    const vx = Math.sin(now * 0.0008) * enemy.speed * 0.6
+                             + Math.sin(now * 0.0003) * enemy.speed * 0.3;
+                    const vy = Math.cos(now * 0.0006) * enemy.speed * 0.6
+                             + Math.cos(now * 0.00025) * enemy.speed * 0.3;
+                    enemy.body.setVelocity(vx, vy);
+                }
                 
-                // Rotate ship to face movement direction (toward hero)
-                enemy.container.rotation = angle + Math.PI / 2;
+                if (enemy.container) {
+                    enemy.container.x = enemy.x;
+                    enemy.container.y = enemy.y;
+                }
+            } else {
+                // Regular enemies move toward hero
+                const angle = Phaser.Math.Angle.Between(
+                    enemy.x, enemy.y,
+                    hero.x, hero.y
+                );
+                
+                enemy.body.setVelocity(
+                    Math.cos(angle) * enemy.speed,
+                    Math.sin(angle) * enemy.speed
+                );
+                
+                if (enemy.container) {
+                    enemy.container.x = enemy.x;
+                    enemy.container.y = enemy.y;
+                    const noRotate = this.scene.levelConfig?.noRotateEnemies;
+                    if (!noRotate || !noRotate.includes(enemy.enemyType)) {
+                        enemy.container.rotation = angle + Math.PI / 2;
+                    }
+                }
             }
 
             // Update health bar position
@@ -612,6 +913,17 @@ class EnemyManager {
         return { x, y };
     }
 
+    getBossSpawnPosition() {
+        if (!this.boss || !this.boss.active) return null;
+        const angle = Math.random() * Math.PI * 2;
+        const dist = this.boss.radius * 1.5 + Math.random() * 60;
+        let x = this.boss.x + Math.cos(angle) * dist;
+        let y = this.boss.y + Math.sin(angle) * dist;
+        x = Phaser.Math.Clamp(x, 50, GAME_CONFIG.worldWidth - 50);
+        y = Phaser.Math.Clamp(y, 50, GAME_CONFIG.worldHeight - 50);
+        return { x, y };
+    }
+
     getRandomEnemyType(wave) {
         // Unlock enemy types based on wave
         const available = ['basic'];
@@ -622,7 +934,7 @@ class EnemyManager {
     }
 
     clearAll() {
-        // Destroy enemy containers first
+        this.boss = null;
         this.enemies.getChildren().forEach(enemy => {
             if (enemy.container) enemy.container.destroy();
             if (enemy.healthBar) enemy.healthBar.destroy();

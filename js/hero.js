@@ -468,7 +468,8 @@ class Hero {
     levelUp() {
         this.level++;
         this.xp -= this.xpToNextLevel;
-        this.xpToNextLevel = Math.floor(this.xpToNextLevel * XP_CONFIG.xpMultiplier);
+        const multiplier = this.level >= 9 ? XP_CONFIG.lateGameXpMultiplier : XP_CONFIG.xpMultiplier;
+        this.xpToNextLevel = Math.floor(this.xpToNextLevel * multiplier);
 
         // Level up effect - energy burst
         for (let i = 0; i < 3; i++) {

@@ -88,6 +88,7 @@ const LEVELS = {
         background: 0x050510,
         nebulaColors: [0x4422aa, 0x2244aa],
         unlocked: true,
+        introVideo: 'assets/videos/level1_intro.mp4',
     },
     2: {
         name: 'Abandoned Colony',
@@ -100,6 +101,7 @@ const LEVELS = {
         background: 0x0a0815,
         nebulaColors: [0x553322, 0x332211],
         unlocked: false,
+        introVideo: 'assets/videos/level2_intro.mp4',
     },
     3: {
         name: 'Nebula Core',
@@ -112,6 +114,12 @@ const LEVELS = {
         background: 0x100520,
         nebulaColors: [0x6622aa, 0x4411aa],
         unlocked: false,
+        hasBoss: true,
+        enemySizeOverrides: {
+            basic: 0.75,
+        },
+        noRotateEnemies: ['basic'],
+        introVideo: 'assets/videos/level3_intro.mp4',
     },
     4: {
         name: 'Dark Sector',
@@ -124,6 +132,7 @@ const LEVELS = {
         background: 0x050008,
         nebulaColors: [0x220044, 0x110022],
         unlocked: false,
+        introVideo: 'assets/videos/level4_intro.mp4',
     },
     5: {
         name: 'Hive World',
@@ -136,6 +145,7 @@ const LEVELS = {
         background: 0x0a0a00,
         nebulaColors: [0x444400, 0x222200],
         unlocked: false,
+        introVideo: 'assets/videos/level5_intro.mp4',
     },
 };
 
@@ -161,6 +171,7 @@ const HERO_CONFIG = {
 const XP_CONFIG = {
     baseXpToLevel: 20,
     xpMultiplier: 1.5, // Each level requires 1.5x more XP
+    lateGameXpMultiplier: 1.15, // Softer ramp from level 9 onward
     gemValue: 5,
     gemSize: 8 * PIXEL_SCALE,
     gemColor: 0x00ff00,
@@ -342,6 +353,19 @@ const ENEMY_TYPES = {
         eyeColor: 0xff8800,
         xpValue: 12,
         shape: 'destroyer',
+    },
+    boss: {
+        name: 'Hive Mother',
+        health: 2000,
+        damage: 20,
+        speed: 8 * PIXEL_SCALE,
+        size: 64 * PIXEL_SCALE,
+        color: 0xcc2255,
+        glowColor: 0xff4488,
+        eyeColor: 0xffcc00,
+        xpValue: 100,
+        shape: 'boss',
+        isBoss: true,
     },
 };
 

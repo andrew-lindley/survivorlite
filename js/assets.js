@@ -38,6 +38,10 @@ const ASSET_CONFIG = {
             key: 'enemy_destroyer', 
             path: 'assets/images/enemies/destroyer.png',
         },
+        boss: {
+            key: 'enemy_boss',
+            path: 'assets/images/enemies/boss.png',
+        },
     },
     
     // Weapon/projectile sprites
@@ -176,8 +180,20 @@ const ASSET_CONFIG = {
         destroyerAnimated: {
             key: 'enemy_destroyer_anim',
             path: 'assets/images/enemies/destroyer_sheet.png',
-            frameWidth: 64,
-            frameHeight: 64,
+            frameWidth: 128,
+            frameHeight: 128,
+        },
+        bossAnimated: {
+            key: 'enemy_boss_anim',
+            path: 'assets/images/enemies/boss_sheet.png',
+            frameWidth: 256,
+            frameHeight: 256,
+        },
+        explosionAnimated: {
+            key: 'fx_explosion_anim',
+            path: 'assets/images/effects/explosion_sheet.png',
+            frameWidth: 128,
+            frameHeight: 128,
         },
     },
     
@@ -254,6 +270,36 @@ const ASSET_CONFIG = {
         },
     },
 };
+
+// Generate per-level enemy asset entries (level1/scout.png, level2/boss_sheet.png, etc.)
+// Drop sprites into assets/images/enemies/level{N}/ to override the defaults for that level.
+(function registerPerLevelEnemyAssets() {
+    const enemyNames = ['scout', 'interceptor', 'destroyer', 'boss'];
+    const sheetDefaults = {
+        scout:       { frameWidth: 128, frameHeight: 128 },
+        interceptor: { frameWidth: 64,  frameHeight: 64 },
+        destroyer:   { frameWidth: 128, frameHeight: 128 },
+        boss:        { frameWidth: 256, frameHeight: 256 },
+    };
+
+    for (let level = 1; level <= 5; level++) {
+        for (const name of enemyNames) {
+            // Static sprite
+            ASSET_CONFIG.enemies[`level${level}_${name}`] = {
+                key: `enemy_${name}_l${level}`,
+                path: `assets/images/enemies/level${level}/${name}.png`,
+            };
+            // Animated sprite sheet
+            const defaults = sheetDefaults[name];
+            ASSET_CONFIG.spritesheets[`level${level}_${name}Animated`] = {
+                key: `enemy_${name}_anim_l${level}`,
+                path: `assets/images/enemies/level${level}/${name}_sheet.png`,
+                frameWidth: defaults.frameWidth,
+                frameHeight: defaults.frameHeight,
+            };
+        }
+    }
+})();
 
 // Asset Manager - handles loading and checking if assets exist
 class AssetManager {

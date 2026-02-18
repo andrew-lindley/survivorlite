@@ -5,14 +5,21 @@ Place your custom sprites in the folders below. The game will automatically use 
 ## Folder Structure
 
 ```
-assets/images/
-├── ships/          # Player ship sprites
-├── enemies/        # Enemy sprites  
-├── weapons/        # Projectile sprites
-├── effects/        # Particle/explosion sprites
-├── icons/          # Weapon icons for UI
-├── backgrounds/    # Level background landscapes
-└── ui/             # UI element sprites
+assets/
+├── images/
+│   ├── ships/              # Player ship sprites
+│   ├── enemies/            # Default enemy sprites (used when no level-specific sprite exists)
+│   │   ├── level1/         # Level 1 enemy overrides (optional)
+│   │   ├── level2/         # Level 2 enemy overrides (optional)
+│   │   ├── level3/         # Level 3 enemy overrides (optional)
+│   │   ├── level4/         # Level 4 enemy overrides (optional)
+│   │   └── level5/         # Level 5 enemy overrides (optional)
+│   ├── weapons/            # Projectile sprites
+│   ├── effects/            # Particle/explosion sprites
+│   ├── icons/              # Weapon icons for UI
+│   ├── backgrounds/        # Level background landscapes
+│   └── ui/                 # UI element sprites
+└── videos/                 # Intro videos per level (MP4)
 ```
 
 ## Required Image Names
@@ -21,15 +28,33 @@ assets/images/
 - `ships/player.png` - Main player ship (static)
 - `ships/player_sheet.png` - Animated player ship (sprite sheet)
 
-### Enemies (Static)
+### Enemies — Default (Static)
 - `enemies/scout.png` - Basic enemy (small, saucer-like)
 - `enemies/interceptor.png` - Fast enemy (sleek, arrow-shaped)
 - `enemies/destroyer.png` - Tank enemy (large, heavy)
+- `enemies/boss.png` - Boss enemy (very large, used on Level 3)
 
-### Enemies (Animated Sprite Sheets)
+### Enemies — Default (Animated Sprite Sheets)
 - `enemies/scout_sheet.png` - Animated scout (sprite sheet)
 - `enemies/interceptor_sheet.png` - Animated interceptor (sprite sheet)
 - `enemies/destroyer_sheet.png` - Animated destroyer (sprite sheet)
+- `enemies/boss_sheet.png` - Animated boss (sprite sheet, 256px frames)
+
+### Enemies — Per-Level Overrides (Optional)
+
+You can give each level its own unique enemy sprites. Place them in `enemies/level{N}/` using the same filenames. Level-specific sprites take priority; if not found, the default above is used.
+
+```
+enemies/level1/scout.png           # Level 1 scout (static)
+enemies/level1/scout_sheet.png     # Level 1 scout (animated)
+enemies/level1/interceptor.png
+enemies/level1/destroyer.png
+enemies/level3/boss.png            # Level 3 boss (static)
+enemies/level3/boss_sheet.png      # Level 3 boss (animated)
+...
+```
+
+You only need to add the files you want to override — any missing per-level sprite will fall back to the default.
 
 **Sprite Sheet Format:** 2 rows x 3 columns (6 frames total)
 ```
@@ -53,7 +78,8 @@ Animation cycles: Row 1 (0→1→2) then Row 2 (3→4→5)
 - `weapons/spirit.png` - Spirit orb
 
 ### Effects
-- `effects/explosion.png` - Enemy death explosion
+- `effects/explosion.png` - Enemy death explosion (static)
+- `effects/explosion_sheet.png` - Animated explosion (sprite sheet, 128px frames, plays on any ship death)
 - `effects/xp_gem.png` - XP gem pickup
 - `effects/hit.png` - Damage hit effect
 
@@ -68,17 +94,29 @@ Animation cycles: Row 1 (0→1→2) then Row 2 (3→4→5)
 - `ui/health_bar.png` - Health bar sprite
 - `ui/button.png` - Button background
 
+### Intro Videos (MP4)
+- `videos/level1_intro.mp4` - Outer Rim intro
+- `videos/level2_intro.mp4` - Abandoned Colony intro
+- `videos/level3_intro.mp4` - Nebula Core intro
+- `videos/level4_intro.mp4` - Dark Sector intro
+- `videos/level5_intro.mp4` - Hive World intro
+
+Videos play fullscreen before the level starts. Tap or press ESC/Space to skip. If a video file is missing, the level loads immediately.
+
 ## Recommended Sizes
 
 | Asset Type | Recommended Size | Notes |
 |------------|-----------------|-------|
 | Player Ship | 64-128 px | Facing UP |
 | Enemies (static) | 32-64 px | Facing DOWN (toward player) |
+| Boss (static) | 128-256 px | Large, centered |
 | Enemies (sheet) | 384x256 px | 3 cols x 2 rows, 128px per frame |
+| Boss (sheet) | 768x512 px | 3 cols x 2 rows, 256px per frame |
 | Weapon Icons | 64x64 px | Square, displayed at 36-56px |
 | Projectiles | 16-32 px | |
 | Effects | 32-64 px | |
 | XP Gems | 16-24 px | |
+| Intro Videos | Any resolution | MP4 format, H.264 codec |
 | Backgrounds | 512-1024 px | Will be tiled/repeated |
 
 ## Tips
