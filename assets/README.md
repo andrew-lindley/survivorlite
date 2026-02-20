@@ -74,7 +74,8 @@ Animation cycles: Row 1 (0→1→2) then Row 2 (3→4→5)
 - `weapons/fireball.png` - Fireball projectile
 - `weapons/frost.png` - Frost nova effect
 - `weapons/lightning.png` - Lightning chain effect
-- `weapons/void.png` - Void zone effect
+- `weapons/void.png` - Void zone effect (static)
+- `weapons/void_sheet.png` - Animated void zone (sprite sheet, 128px frames)
 - `weapons/spirit.png` - Spirit orb
 
 ### Effects

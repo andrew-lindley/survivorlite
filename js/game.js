@@ -1622,7 +1622,7 @@ class LevelSelectScene extends Phaser.Scene {
                 this.cameras.main.flash(200, 68, 136, 255, false);
                 this.cameras.main.fade(400, 0, 0, 0);
                 this.time.delayedCall(400, () => {
-                    this.scene.start('IntroVideoScene', { level: levelNum });
+                    this.scene.start('GameScene', { level: levelNum });
                 });
             });
         }
@@ -1744,7 +1744,7 @@ class LevelSelectScene extends Phaser.Scene {
                 this.cameras.main.flash(200, 68, 136, 255, false);
                 this.cameras.main.fade(400, 0, 0, 0);
                 this.time.delayedCall(400, () => {
-                    this.scene.start('IntroVideoScene', { level: levelNum });
+                    this.scene.start('GameScene', { level: levelNum });
                 });
             });
         }
@@ -2128,86 +2128,6 @@ class ShopScene extends Phaser.Scene {
     }
 })();
 
-// Intro Video Scene — plays an MP4 before entering a level
-class IntroVideoScene extends Phaser.Scene {
-    constructor() {
-        super({ key: 'IntroVideoScene' });
-    }
-
-    init(data) {
-        this.targetLevel = data.level || 1;
-    }
-
-    create() {
-        const levelConfig = LEVELS[this.targetLevel];
-        const videoPath = levelConfig?.introVideo;
-
-        if (!videoPath) {
-            this.scene.start('GameScene', { level: this.targetLevel });
-            return;
-        }
-
-        const overlay = document.getElementById('intro-video-overlay');
-        const video = document.getElementById('intro-video');
-
-        // Test if the video file exists before trying to play
-        const testReq = new XMLHttpRequest();
-        testReq.open('HEAD', videoPath, true);
-        testReq.onload = () => {
-            if (testReq.status >= 200 && testReq.status < 400) {
-                this.playVideo(overlay, video, videoPath);
-            } else {
-                this.scene.start('GameScene', { level: this.targetLevel });
-            }
-        };
-        testReq.onerror = () => {
-            this.scene.start('GameScene', { level: this.targetLevel });
-        };
-        testReq.send();
-    }
-
-    playVideo(overlay, video, videoPath) {
-        overlay.classList.add('active');
-        video.src = videoPath;
-        video.currentTime = 0;
-
-        let ended = false;
-        const finish = () => {
-            if (ended) return;
-            ended = true;
-            video.pause();
-            video.removeAttribute('src');
-            video.load();
-            overlay.classList.remove('active');
-            this.scene.start('GameScene', { level: this.targetLevel });
-        };
-
-        video.onended = finish;
-        video.onerror = finish;
-
-        // Tap/click to skip
-        const skipHandler = () => {
-            finish();
-            overlay.removeEventListener('pointerdown', skipHandler);
-        };
-        overlay.addEventListener('pointerdown', skipHandler);
-
-        // Keyboard skip (ESC or Space)
-        const keyHandler = (e) => {
-            if (e.code === 'Escape' || e.code === 'Space') {
-                finish();
-                document.removeEventListener('keydown', keyHandler);
-            }
-        };
-        document.addEventListener('keydown', keyHandler);
-
-        video.play().catch(() => {
-            // Autoplay blocked (no user gesture) — skip to game
-            finish();
-        });
-    }
-}
-
 // Game Configuration
 const config = {
     type: Phaser.AUTO,
@@ -2226,7 +2146,7 @@ const config = {
             debug: false,
         },
     },
-    scene: [BootScene, LevelSelectScene, ShopScene, IntroVideoScene, GameScene],
+    scene: [BootScene, LevelSelectScene, ShopScene, GameScene],
 };
 
 // Create game instance

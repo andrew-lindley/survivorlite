@@ -88,7 +88,6 @@ const LEVELS = {
         background: 0x050510,
         nebulaColors: [0x4422aa, 0x2244aa],
         unlocked: true,
-        introVideo: 'assets/videos/level1_intro.mp4',
     },
     2: {
         name: 'Abandoned Colony',
@@ -101,7 +100,6 @@ const LEVELS = {
         background: 0x0a0815,
         nebulaColors: [0x553322, 0x332211],
         unlocked: false,
-        introVideo: 'assets/videos/level2_intro.mp4',
     },
     3: {
         name: 'Nebula Core',
@@ -119,7 +117,6 @@ const LEVELS = {
             basic: 0.75,
         },
         noRotateEnemies: ['basic'],
-        introVideo: 'assets/videos/level3_intro.mp4',
     },
     4: {
         name: 'Dark Sector',
@@ -132,7 +129,6 @@ const LEVELS = {
         background: 0x050008,
         nebulaColors: [0x220044, 0x110022],
         unlocked: false,
-        introVideo: 'assets/videos/level4_intro.mp4',
     },
     5: {
         name: 'Hive World',
@@ -145,7 +141,6 @@ const LEVELS = {
         background: 0x0a0a00,
         nebulaColors: [0x444400, 0x222200],
         unlocked: false,
-        introVideo: 'assets/videos/level5_intro.mp4',
     },
 };
 

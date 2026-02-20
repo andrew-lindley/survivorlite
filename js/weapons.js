@@ -621,18 +621,42 @@ class WeaponManager {
         // Create void zone container
         const container = this.scene.add.container(targetX, targetY);
         
-        // Outer glow
-        const outerGlow = this.scene.add.circle(0, 0, config.range, color, 0.15);
-        
-        // Swirling pattern
-        const swirl = this.scene.add.circle(0, 0, config.range * 0.8, 0x000000, 0);
-        swirl.setStrokeStyle(3, color, 0.6);
-        
-        // Inner void
-        const inner = this.scene.add.circle(0, 0, config.range * 0.3, 0x220033, 0.8);
-        inner.setStrokeStyle(2, color, 1);
-        
-        container.add([outerGlow, swirl, inner]);
+        const spriteKey = Assets.getAsset('spritesheets', 'voidZoneAnimated');
+        if (spriteKey) {
+            const sprite = this.scene.add.sprite(0, 0, spriteKey);
+            const frameSize = ASSET_CONFIG.spritesheets.voidZoneAnimated.frameWidth;
+            sprite.setScale((config.range * 2) / frameSize);
+            
+            const animKey = 'voidzone_loop';
+            if (!this.scene.anims.exists(animKey)) {
+                this.scene.anims.create({
+                    key: animKey,
+                    frames: this.scene.anims.generateFrameNumbers(spriteKey, { start: 0, end: 5 }),
+                    frameRate: 8,
+                    repeat: -1
+                });
+            }
+            sprite.play(animKey);
+            container.add(sprite);
+        } else {
+            const outerGlow = this.scene.add.circle(0, 0, config.range, color, 0.15);
+            const swirl = this.scene.add.circle(0, 0, config.range * 0.8, 0x000000, 0);
+            swirl.setStrokeStyle(3, color, 0.6);
+            const inner = this.scene.add.circle(0, 0, config.range * 0.3, 0x220033, 0.8);
+            inner.setStrokeStyle(2, color, 1);
+            container.add([outerGlow, swirl, inner]);
+            
+            this.scene.tweens.add({
+                targets: swirl,
+                rotation: Math.PI * 2,
+                duration: 2000, repeat: -1, ease: 'Linear'
+            });
+            this.scene.tweens.add({
+                targets: outerGlow,
+                scale: 1.1, alpha: 0.1,
+                duration: 500, yoyo: true, repeat: -1
+            });
+        }
         
         // Spawn animation
         container.setScale(0);
@@ -643,25 +667,6 @@ class WeaponManager {
             alpha: 1,
             duration: 300,
             ease: 'Back.easeOut'
-        });
-        
-        // Swirl rotation
-        this.scene.tweens.add({
-            targets: swirl,
-            rotation: Math.PI * 2,
-            duration: 2000,
-            repeat: -1,
-            ease: 'Linear'
-        });
-        
-        // Pulsing effect
-        this.scene.tweens.add({
-            targets: outerGlow,
-            scale: 1.1,
-            alpha: 0.1,
-            duration: 500,
-            yoyo: true,
-            repeat: -1
         });
         
         // Zone data

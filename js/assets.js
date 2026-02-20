@@ -195,6 +195,12 @@ const ASSET_CONFIG = {
             frameWidth: 128,
             frameHeight: 128,
         },
+        voidZoneAnimated: {
+            key: 'proj_void_anim',
+            path: 'assets/images/weapons/void_sheet.png',
+            frameWidth: 128,
+            frameHeight: 128,
+        },
     },
     
     // Sound effects
