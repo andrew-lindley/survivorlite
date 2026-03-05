@@ -40,24 +40,24 @@ const DEBUG_CONFIG = {
     }
 };
 
-// Orientation configurations for iPhone 16
+// Orientation configurations
 const ORIENTATIONS = {
     landscape: {
-        baseWidth: 844,   // iPhone 16 logical width in landscape
-        baseHeight: 390,  // iPhone 16 logical height in landscape
+        baseWidth: 597,
+        baseHeight: 381,
         label: 'Landscape',
         icon: '📱↔️'
     },
     portrait: {
-        baseWidth: 390,   // iPhone 16 logical width in portrait
-        baseHeight: 844,  // iPhone 16 logical height in portrait
+        baseWidth: 381,
+        baseHeight: 597,
         label: 'Portrait',
         icon: '📱↕️'
     }
 };
 
 // Default orientation (can be changed at runtime)
-let currentOrientation = 'landscape';
+let currentOrientation = 'portrait';
 
 // Dynamic game config that updates based on orientation
 const GAME_CONFIG = {
