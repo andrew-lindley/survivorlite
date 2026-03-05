@@ -2819,7 +2819,7 @@ class Hero {
         
         this.radius = HERO_CONFIG.size;
         this.invincibleUntil = 0;
-        this.rotation = -Math.PI / 2; // Point up by default
+        this.rotation = 0; // Point right (90° clockwise from up)
         
         // Apply shield upgrade (hits absorbed at start)
         this.shieldCharges = ProgressManager.getShieldCharges();
@@ -3312,6 +3312,7 @@ class UIManager {
         this.scene = scene;
         this.ps = GAME_CONFIG.pixelScale; // Pixel scale for UI
         this.isPortrait = currentOrientation === 'portrait';
+        this.topOffset = 22; // 44px visible offset for top UI (44 / PIXEL_SCALE)
         this.container = scene.add.container(0, 0);
         this.container.setScrollFactor(0);
         this.container.setDepth(50);
@@ -3327,7 +3328,7 @@ class UIManager {
 
     createHealthBar() {
         const x = 10;
-        const y = 10;
+        const y = 10 + this.topOffset;
         // Narrower health bar in portrait mode
         const width = this.isPortrait ? 120 : 200;
         const height = this.isPortrait ? 16 : 20;
@@ -3373,7 +3374,7 @@ class UIManager {
 
     createXPBar() {
         const x = 10;
-        const y = this.isPortrait ? 32 : 55;
+        const y = (this.isPortrait ? 32 : 55) + this.topOffset;
         const width = this.isPortrait ? 120 : 200;
         const height = this.isPortrait ? 10 : 12;
 
@@ -3410,7 +3411,7 @@ class UIManager {
     createWaveDisplay() {
         // Position from right edge, adjust for portrait
         const x = this.isPortrait ? GAME_CONFIG.baseWidth - 90 : GAME_CONFIG.baseWidth - 150;
-        const y = 10;
+        const y = 10 + this.topOffset;
 
         // Sector indicator - shorter in portrait
         this.sectorText = this.scene.add.text(x, y, 'SECTOR 1', {
@@ -3510,7 +3511,7 @@ class UIManager {
 
     createPauseButton() {
         const x = GAME_CONFIG.baseWidth - (this.isPortrait ? 35 : 50);
-        const y = this.isPortrait ? 75 : 90;
+        const y = (this.isPortrait ? 75 : 90) + this.topOffset;
         const size = this.isPortrait ? 30 : 40;
 
         // Pause button background

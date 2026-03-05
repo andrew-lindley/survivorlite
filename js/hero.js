@@ -30,7 +30,7 @@ class Hero {
         
         this.radius = HERO_CONFIG.size;
         this.invincibleUntil = 0;
-        this.rotation = -Math.PI / 2; // Point up by default
+        this.rotation = 0; // Point right (90° clockwise from up)
         
         // Apply shield upgrade (hits absorbed at start)
         this.shieldCharges = ProgressManager.getShieldCharges();
