@@ -1,3 +1,15 @@
+// Theme Configuration
+const THEMES = {
+    space: { name: 'Space', basePath: 'assets/images' },
+    aquatic: { name: 'Aquatic', basePath: 'assets/images_aquatic' },
+};
+
+const ThemeManager = {
+    current() { return localStorage.getItem('gameTheme') || 'space'; },
+    set(theme) { localStorage.setItem('gameTheme', theme); },
+    basePath() { return THEMES[this.current()].basePath; },
+};
+
 // Game Constants
 // PIXEL_SCALE: Increase for higher resolution (2 = 2x resolution, sharper sprites)
 // Assets will appear the same size but with more detail

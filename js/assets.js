@@ -6,21 +6,19 @@ const ASSET_CONFIG = {
     ships: {
         player: {
             key: 'ship_player',
-            path: 'assets/images/ships/player.png',
-            // Optional: frameWidth/frameHeight for sprite sheets
+            path: 'ships/player.png',
         },
-        // Ship evolution variants (optional - for weapon upgrades)
         playerFireball: {
             key: 'ship_player_fireball',
-            path: 'assets/images/ships/player_fireball.png',
+            path: 'ships/player_fireball.png',
         },
         playerFrost: {
             key: 'ship_player_frost',
-            path: 'assets/images/ships/player_frost.png',
+            path: 'ships/player_frost.png',
         },
         playerLightning: {
             key: 'ship_player_lightning',
-            path: 'assets/images/ships/player_lightning.png',
+            path: 'ships/player_lightning.png',
         },
     },
     
@@ -28,19 +26,19 @@ const ASSET_CONFIG = {
     enemies: {
         scout: {
             key: 'enemy_scout',
-            path: 'assets/images/enemies/scout.png',
+            path: 'enemies/scout.png',
         },
         interceptor: {
             key: 'enemy_interceptor',
-            path: 'assets/images/enemies/interceptor.png',
+            path: 'enemies/interceptor.png',
         },
         destroyer: {
             key: 'enemy_destroyer', 
-            path: 'assets/images/enemies/destroyer.png',
+            path: 'enemies/destroyer.png',
         },
         boss: {
             key: 'enemy_boss',
-            path: 'assets/images/enemies/boss.png',
+            path: 'enemies/boss.png',
         },
     },
     
@@ -48,23 +46,23 @@ const ASSET_CONFIG = {
     weapons: {
         fireball: {
             key: 'proj_fireball',
-            path: 'assets/images/weapons/fireball.png',
+            path: 'weapons/fireball.png',
         },
         frostNova: {
             key: 'proj_frost',
-            path: 'assets/images/weapons/frost.png',
+            path: 'weapons/frost.png',
         },
         lightning: {
             key: 'proj_lightning',
-            path: 'assets/images/weapons/lightning.png',
+            path: 'weapons/lightning.png',
         },
         voidZone: {
             key: 'proj_void',
-            path: 'assets/images/weapons/void.png',
+            path: 'weapons/void.png',
         },
         spiritOrb: {
             key: 'proj_spirit',
-            path: 'assets/images/weapons/spirit.png',
+            path: 'weapons/spirit.png',
         },
     },
     
@@ -72,15 +70,15 @@ const ASSET_CONFIG = {
     effects: {
         explosion: {
             key: 'fx_explosion',
-            path: 'assets/images/effects/explosion.png',
+            path: 'effects/explosion.png',
         },
         xpGem: {
             key: 'fx_xp_gem',
-            path: 'assets/images/effects/xp_gem.png',
+            path: 'effects/xp_gem.png',
         },
         hit: {
             key: 'fx_hit',
-            path: 'assets/images/effects/hit.png',
+            path: 'effects/hit.png',
         },
     },
     
@@ -88,11 +86,11 @@ const ASSET_CONFIG = {
     ui: {
         healthBar: {
             key: 'ui_health',
-            path: 'assets/images/ui/health_bar.png',
+            path: 'ui/health_bar.png',
         },
         button: {
             key: 'ui_button',
-            path: 'assets/images/ui/button.png',
+            path: 'ui/button.png',
         },
     },
     
@@ -100,57 +98,55 @@ const ASSET_CONFIG = {
     icons: {
         fireball: {
             key: 'icon_fireball',
-            path: 'assets/images/icons/fireball.png',
+            path: 'icons/fireball.png',
         },
         lightning: {
             key: 'icon_lightning',
-            path: 'assets/images/icons/lightning.png',
+            path: 'icons/lightning.png',
         },
         frostNova: {
             key: 'icon_frostnova',
-            path: 'assets/images/icons/frostnova.png',
+            path: 'icons/frostnova.png',
         },
         voidZone: {
             key: 'icon_voidzone',
-            path: 'assets/images/icons/voidzone.png',
+            path: 'icons/voidzone.png',
         },
         spiritOrbs: {
             key: 'icon_spiritorbs',
-            path: 'assets/images/icons/spiritorbs.png',
+            path: 'icons/spiritorbs.png',
         },
     },
     
     // Level backgrounds - one for each level
     backgrounds: {
-        // Menu backgrounds
         homescreen: {
             key: 'bg_homescreen',
-            path: 'assets/images/backgrounds/homescreen.png',
+            path: 'backgrounds/homescreen.jpg',
         },
         levelselect: {
             key: 'bg_levelselect',
-            path: 'assets/images/backgrounds/levelselect.png',
+            path: 'backgrounds/levelselect.jpg',
         },
-        // In-game level backgrounds
         level1: {
             key: 'bg_level1',
-            path: 'assets/images/backgrounds/level1.png',
+            path: 'backgrounds/level1.jpg',
         },
         level2: {
             key: 'bg_level2',
-            path: 'assets/images/backgrounds/level2.png',
+            path: 'backgrounds/level2.jpg',
         },
         level3: {
             key: 'bg_level3',
-            path: 'assets/images/backgrounds/level3.png',
+            path: 'backgrounds/level3.jpg',
         },
         level4: {
             key: 'bg_level4',
-            path: 'assets/images/backgrounds/level4.png',
+            path: 'backgrounds/level4.jpg',
         },
         level5: {
             key: 'bg_level5',
-            path: 'assets/images/backgrounds/level5.png',
+            path: 'backgrounds/level5.jpg',
         },
     },
     
@@ -160,44 +156,43 @@ const ASSET_CONFIG = {
     spritesheets: {
         playerAnimated: {
             key: 'ship_player_anim',
-            path: 'assets/images/ships/player_sheet.png',
-            frameWidth: 96,  // Adjust if frames are different size
-            frameHeight: 96, // Adjust if frames are different size
+            path: 'ships/player_sheet.png',
+            frameWidth: 96,
+            frameHeight: 96,
         },
-        // Enemy sprite sheets - 2 rows x 3 columns format
         scoutAnimated: {
             key: 'enemy_scout_anim',
-            path: 'assets/images/enemies/scout_sheet.png',
-            frameWidth: 128,   // Width of single frame (sheet width / 3)
-            frameHeight: 128,  // Height of single frame (sheet height / 2)
+            path: 'enemies/scout_sheet.png',
+            frameWidth: 128,
+            frameHeight: 128,
         },
         interceptorAnimated: {
             key: 'enemy_interceptor_anim',
-            path: 'assets/images/enemies/interceptor_sheet.png',
+            path: 'enemies/interceptor_sheet.png',
             frameWidth: 64,
             frameHeight: 64,
         },
         destroyerAnimated: {
             key: 'enemy_destroyer_anim',
-            path: 'assets/images/enemies/destroyer_sheet.png',
+            path: 'enemies/destroyer_sheet.png',
             frameWidth: 128,
             frameHeight: 128,
         },
         bossAnimated: {
             key: 'enemy_boss_anim',
-            path: 'assets/images/enemies/boss_sheet.png',
+            path: 'enemies/boss_sheet.png',
             frameWidth: 256,
             frameHeight: 256,
         },
         explosionAnimated: {
             key: 'fx_explosion_anim',
-            path: 'assets/images/effects/explosion_sheet.png',
+            path: 'effects/explosion_sheet.png',
             frameWidth: 128,
             frameHeight: 128,
         },
         voidZoneAnimated: {
             key: 'proj_void_anim',
-            path: 'assets/images/weapons/void_sheet.png',
+            path: 'weapons/void_sheet.png',
             frameWidth: 128,
             frameHeight: 128,
         },
@@ -290,16 +285,14 @@ const ASSET_CONFIG = {
 
     for (let level = 1; level <= 5; level++) {
         for (const name of enemyNames) {
-            // Static sprite
             ASSET_CONFIG.enemies[`level${level}_${name}`] = {
                 key: `enemy_${name}_l${level}`,
-                path: `assets/images/enemies/level${level}/${name}.png`,
+                path: `enemies/level${level}/${name}.png`,
             };
-            // Animated sprite sheet
             const defaults = sheetDefaults[name];
             ASSET_CONFIG.spritesheets[`level${level}_${name}Animated`] = {
                 key: `enemy_${name}_anim_l${level}`,
-                path: `assets/images/enemies/level${level}/${name}_sheet.png`,
+                path: `enemies/level${level}/${name}_sheet.png`,
                 frameWidth: defaults.frameWidth,
                 frameHeight: defaults.frameHeight,
             };
@@ -316,42 +309,92 @@ class AssetManager {
         this.soundVolume = 0.5;
         this.currentScene = null;
     }
-    
-    // Call this in preload() to load all configured assets
-    preloadAll(scene) {
-        // Load regular images
-        for (const category of ['ships', 'enemies', 'weapons', 'effects', 'ui', 'backgrounds', 'icons']) {
-            const assets = ASSET_CONFIG[category];
-            for (const [name, config] of Object.entries(assets)) {
-                scene.load.image(config.key, config.path);
-            }
+
+    _setupListeners(scene) {
+        scene.load.on('filecomplete', (key) => {
+            this.loadedAssets.add(key);
+        });
+        scene.load.on('loaderror', (file) => {
+            this.failedAssets.add(file.key);
+        });
+    }
+
+    _loadImage(scene, basePath, config) {
+        if (!this.loadedAssets.has(config.key)) {
+            scene.load.image(config.key, basePath + '/' + config.path);
         }
-        
-        // Load sprite sheets
-        for (const [name, config] of Object.entries(ASSET_CONFIG.spritesheets)) {
-            scene.load.spritesheet(config.key, config.path, {
+    }
+
+    _loadSheet(scene, basePath, config) {
+        if (!this.loadedAssets.has(config.key)) {
+            scene.load.spritesheet(config.key, basePath + '/' + config.path, {
                 frameWidth: config.frameWidth,
                 frameHeight: config.frameHeight,
             });
         }
-        
-        // Load audio files
-        for (const [name, config] of Object.entries(ASSET_CONFIG.audio)) {
-            scene.load.audio(config.key, config.path);
+    }
+
+    preloadForLevel(scene, level) {
+        const basePath = ThemeManager.basePath();
+        this._setupListeners(scene);
+
+        for (const [, config] of Object.entries(ASSET_CONFIG.ships)) {
+            this._loadImage(scene, basePath, config);
         }
-        
-        // Track loaded/failed assets
-        scene.load.on('filecomplete', (key) => {
-            this.loadedAssets.add(key);
-        });
-        
-        scene.load.on('loaderror', (file) => {
-            this.failedAssets.add(file.key);
-            // Only log non-audio failures to reduce console noise
-            if (!file.key.startsWith('sfx_')) {
-                console.log(`Asset not found (using fallback): ${file.key}`);
+        for (const name of ['scout', 'interceptor', 'destroyer', 'boss']) {
+            const config = ASSET_CONFIG.enemies[name];
+            if (config) this._loadImage(scene, basePath, config);
+        }
+        for (const [, config] of Object.entries(ASSET_CONFIG.weapons)) {
+            this._loadImage(scene, basePath, config);
+        }
+        for (const [, config] of Object.entries(ASSET_CONFIG.effects)) {
+            this._loadImage(scene, basePath, config);
+        }
+        for (const [, config] of Object.entries(ASSET_CONFIG.icons)) {
+            this._loadImage(scene, basePath, config);
+        }
+        for (const [, config] of Object.entries(ASSET_CONFIG.ui)) {
+            this._loadImage(scene, basePath, config);
+        }
+
+        const bgConfig = ASSET_CONFIG.backgrounds[`level${level}`];
+        if (bgConfig) this._loadImage(scene, basePath, bgConfig);
+
+        for (const name of ['playerAnimated', 'scoutAnimated', 'interceptorAnimated',
+            'destroyerAnimated', 'bossAnimated', 'explosionAnimated', 'voidZoneAnimated']) {
+            const config = ASSET_CONFIG.spritesheets[name];
+            if (config) this._loadSheet(scene, basePath, config);
+        }
+
+        for (const enemyName of ['scout', 'interceptor', 'destroyer', 'boss']) {
+            const staticConf = ASSET_CONFIG.enemies[`level${level}_${enemyName}`];
+            if (staticConf) this._loadImage(scene, basePath, staticConf);
+            const animConf = ASSET_CONFIG.spritesheets[`level${level}_${enemyName}Animated`];
+            if (animConf) this._loadSheet(scene, basePath, animConf);
+        }
+    }
+
+    preloadAll(scene) {
+        const basePath = ThemeManager.basePath();
+        this._setupListeners(scene);
+
+        for (const category of ['ships', 'enemies', 'weapons', 'effects', 'ui', 'backgrounds', 'icons']) {
+            const assets = ASSET_CONFIG[category];
+            for (const [, config] of Object.entries(assets)) {
+                this._loadImage(scene, basePath, config);
             }
-        });
+        }
+
+        for (const [, config] of Object.entries(ASSET_CONFIG.spritesheets)) {
+            this._loadSheet(scene, basePath, config);
+        }
+
+        for (const [, config] of Object.entries(ASSET_CONFIG.audio)) {
+            if (!this.loadedAssets.has(config.key)) {
+                scene.load.audio(config.key, config.path);
+            }
+        }
     }
     
     // Set current scene for audio playback

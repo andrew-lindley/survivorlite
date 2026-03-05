@@ -31,3 +31,10 @@ build/
 # Temporary files
 *.tmp
 *.temp
+
+# Large archive files
+assets/images.zip
+
+# Original uncompressed background PNGs (replaced by JPEGs)
+assets/images/backgrounds/*.png
+assets/images_aquatic/backgrounds/*.png

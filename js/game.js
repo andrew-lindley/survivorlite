@@ -675,6 +675,21 @@ const ProgressManager = {
     }
 };
 
+// QuickBoot Scene - Minimal load, straight into level 1
+class QuickBootScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'QuickBootScene' });
+    }
+
+    preload() {
+        Assets.preloadForLevel(this, 1);
+    }
+
+    create() {
+        this.scene.start('GameScene', { level: 1 });
+    }
+}
+
 // Boot Scene - Loading
 class BootScene extends Phaser.Scene {
     constructor() {
@@ -682,7 +697,6 @@ class BootScene extends Phaser.Scene {
     }
 
     preload() {
-        // Load all game assets
         Assets.preloadAll(this);
         
         // Show loading text
@@ -1073,14 +1087,13 @@ class BootScene extends Phaser.Scene {
         this.debugContainer = this.add.container(width / 2, height / 2);
         this.debugContainer.setDepth(100);
         
-        // Background panel - increased height for new option
         const panelWidth = 280;
-        const panelHeight = 280;
+        const panelHeight = 330;
         const panel = this.add.rectangle(0, 0, panelWidth, panelHeight, 0x0a0a1a, 0.95);
         panel.setStrokeStyle(2, 0xff8800, 0.8);
         
         // Title
-        const title = this.add.text(0, -115, '🛠 DEBUG MENU', {
+        const title = this.add.text(0, -140, '🛠 DEBUG MENU', {
             fontSize: '18px',
             fontFamily: 'Courier New',
             color: '#ff8800',
@@ -1088,14 +1101,14 @@ class BootScene extends Phaser.Scene {
         }).setOrigin(0.5);
         
         // Warning text
-        const warning = this.add.text(0, -90, 'For testing only', {
+        const warning = this.add.text(0, -115, 'For testing only', {
             fontSize: '10px',
             fontFamily: 'Courier New',
             color: '#886644',
         }).setOrigin(0.5);
         
         // Debug options
-        const optionStartY = -55;
+        const optionStartY = -75;
         const optionSpacing = 45;
         
         // Option 1: Invincibility
@@ -1123,12 +1136,31 @@ class BootScene extends Phaser.Scene {
             0, optionStartY + optionSpacing * 2
         );
         
+        // Option 4: Theme Toggle
+        const themeToggle = this.createDebugToggle(
+            0, optionStartY + optionSpacing * 3,
+            '🌊 Aquatic Theme',
+            ThemeManager.current() === 'aquatic',
+            (newValue) => {
+                ThemeManager.set(newValue ? 'aquatic' : 'space');
+                this.debugContainer.destroy();
+                this.debugContainer = null;
+                Assets.loadedAssets.clear();
+                Assets.failedAssets.clear();
+                this.textures.getTextureKeys().forEach(k => {
+                    if (!k.startsWith('__')) this.textures.remove(k);
+                });
+                this.anims.getAnimationNames().forEach(k => this.anims.remove(k));
+                this.scene.start('BootScene');
+            }
+        );
+        
         // Close button
-        const closeBtn = this.add.rectangle(0, 115, 100, 35, 0x333344);
+        const closeBtn = this.add.rectangle(0, 140, 100, 35, 0x333344);
         closeBtn.setStrokeStyle(2, 0xffffff, 0.6);
         closeBtn.setInteractive({ useHandCursor: true });
         
-        const closeText = this.add.text(0, 115, 'CLOSE', {
+        const closeText = this.add.text(0, 140, 'CLOSE', {
             fontSize: '14px',
             fontFamily: 'Courier New',
             color: '#aaaaaa',
@@ -1157,6 +1189,7 @@ class BootScene extends Phaser.Scene {
             ...invincibleToggle,
             ...levelsToggle,
             ...weaponSelector,
+            ...themeToggle,
             closeBtn,
             closeText
         ]);
@@ -2146,7 +2179,7 @@ const config = {
             debug: false,
         },
     },
-    scene: [BootScene, LevelSelectScene, ShopScene, GameScene],
+    scene: [QuickBootScene, BootScene, LevelSelectScene, ShopScene, GameScene],
 };
 
 // Create game instance
