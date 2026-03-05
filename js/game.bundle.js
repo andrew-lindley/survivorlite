@@ -4379,6 +4379,7 @@ class GameScene extends Phaser.Scene {
         this.isPaused = false;
         this.gameOver = false;
         this.showingPauseMenu = false;
+        this.waitingForInput = true;
         
         // Set up audio for this scene
         Assets.setScene(this);
@@ -4403,7 +4404,7 @@ class GameScene extends Phaser.Scene {
 
         // Wave system
         this.currentWave = 1;
-        this.waveStartTime = this.time.now;
+        this.waveStartTime = 0;
         this.lastSpawnTime = 0;
         this.enemiesSpawnedThisWave = 0;
         this.maxEnemiesThisWave = WAVE_CONFIG.baseEnemyCount;
@@ -4421,9 +4422,17 @@ class GameScene extends Phaser.Scene {
             this.enemyManager.spawnBoss(cx, cy, levelHealthMult, levelDamageMult);
         }
 
-        // Show first wave
-        this.ui.showWaveAnnouncement(1);
-        Assets.playSound('waveStart', { volume: 0.6 });
+        // Wait for first user interaction before starting waves
+        const startGame = () => {
+            if (!this.waitingForInput) return;
+            this.waitingForInput = false;
+            this.waveStartTime = this.time.now;
+            this.lastSpawnTime = this.time.now;
+            this.ui.showWaveAnnouncement(1);
+            Assets.playSound('waveStart', { volume: 0.6 });
+        };
+        this.input.on('pointerdown', startGame);
+        this.input.keyboard.on('keydown', startGame);
 
         // ESC key to toggle pause
         this.input.keyboard.on('keydown-ESC', () => {
@@ -4652,6 +4661,7 @@ class GameScene extends Phaser.Scene {
 
     update(time, delta) {
         if (this.gameOver || this.isPaused) return;
+        if (this.waitingForInput) return;
 
         // Update hero
         this.hero.update(time);
