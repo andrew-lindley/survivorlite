@@ -2203,28 +2203,31 @@ const game = new Phaser.Game(config);
         return isLandscape ? 'landscape' : 'portrait';
     }
     
-    // Handle orientation change
+    // Handle orientation / resize change
     function handleOrientationChange() {
         const newOrientation = detectOrientation();
-        
-        // Only update if orientation actually changed
-        if (newOrientation !== currentOrientation) {
-            console.log(`Orientation changed: ${currentOrientation} → ${newOrientation}`);
-            
-            // Update the global orientation
+
+        // Recompute base dimensions from the new window size
+        const dims = computeBaseDimensions();
+        ORIENTATIONS.portrait.baseWidth = dims.portrait.baseWidth;
+        ORIENTATIONS.portrait.baseHeight = dims.portrait.baseHeight;
+        ORIENTATIONS.landscape.baseWidth = dims.landscape.baseWidth;
+        ORIENTATIONS.landscape.baseHeight = dims.landscape.baseHeight;
+
+        const orientationChanged = newOrientation !== currentOrientation;
+        if (orientationChanged) {
             setGameOrientation(newOrientation);
-            
-            // Resize the Phaser game canvas
-            game.scale.resize(GAME_CONFIG.width, GAME_CONFIG.height);
-            
-            // Refresh the scale manager to recalculate positioning
-            game.scale.refresh();
-            
-            // Restart the current scene to re-layout UI properly
+        }
+
+        // Resize the Phaser game canvas to match new dimensions
+        game.scale.resize(GAME_CONFIG.width, GAME_CONFIG.height);
+        game.scale.refresh();
+
+        // Restart non-gameplay scenes to re-layout UI
+        if (orientationChanged) {
             const currentScene = game.scene.getScenes(true)[0];
             if (currentScene) {
                 const sceneKey = currentScene.scene.key;
-                // Don't restart GameScene during active gameplay to avoid losing progress
                 if (sceneKey !== 'GameScene') {
                     currentScene.scene.restart();
                 }

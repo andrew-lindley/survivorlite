@@ -40,21 +40,29 @@ const DEBUG_CONFIG = {
     }
 };
 
-// Orientation configurations
-const ORIENTATIONS = {
-    landscape: {
-        baseWidth: 597,
-        baseHeight: 381,
-        label: 'Landscape',
-        icon: '📱↔️'
-    },
-    portrait: {
-        baseWidth: 381,
-        baseHeight: 597,
-        label: 'Portrait',
-        icon: '📱↕️'
+// Base width used for layout calculations; height is derived from window aspect ratio
+const BASE_SHORT_SIDE = 381;
+
+// Compute base dimensions from the actual window size
+function computeBaseDimensions() {
+    const w = window.innerWidth || 381;
+    const h = window.innerHeight || 597;
+    if (w > h) {
+        // landscape
+        const baseW = Math.round(BASE_SHORT_SIDE * (w / h));
+        return { landscape: { baseWidth: baseW, baseHeight: BASE_SHORT_SIDE },
+                 portrait:  { baseWidth: BASE_SHORT_SIDE, baseHeight: baseW } };
     }
-};
+    const baseH = Math.round(BASE_SHORT_SIDE * (h / w));
+    return { portrait:  { baseWidth: BASE_SHORT_SIDE, baseHeight: baseH },
+             landscape: { baseWidth: baseH, baseHeight: BASE_SHORT_SIDE } };
+}
+
+const ORIENTATIONS = computeBaseDimensions();
+ORIENTATIONS.portrait.label = 'Portrait';
+ORIENTATIONS.portrait.icon = '📱↕️';
+ORIENTATIONS.landscape.label = 'Landscape';
+ORIENTATIONS.landscape.icon = '📱↔️';
 
 // Default orientation (can be changed at runtime)
 let currentOrientation = 'portrait';
@@ -6569,28 +6577,31 @@ const game = new Phaser.Game(config);
         return isLandscape ? 'landscape' : 'portrait';
     }
     
-    // Handle orientation change
+    // Handle orientation / resize change
     function handleOrientationChange() {
         const newOrientation = detectOrientation();
-        
-        // Only update if orientation actually changed
-        if (newOrientation !== currentOrientation) {
-            console.log(`Orientation changed: ${currentOrientation} → ${newOrientation}`);
-            
-            // Update the global orientation
+
+        // Recompute base dimensions from the new window size
+        const dims = computeBaseDimensions();
+        ORIENTATIONS.portrait.baseWidth = dims.portrait.baseWidth;
+        ORIENTATIONS.portrait.baseHeight = dims.portrait.baseHeight;
+        ORIENTATIONS.landscape.baseWidth = dims.landscape.baseWidth;
+        ORIENTATIONS.landscape.baseHeight = dims.landscape.baseHeight;
+
+        const orientationChanged = newOrientation !== currentOrientation;
+        if (orientationChanged) {
             setGameOrientation(newOrientation);
-            
-            // Resize the Phaser game canvas
-            game.scale.resize(GAME_CONFIG.width, GAME_CONFIG.height);
-            
-            // Refresh the scale manager to recalculate positioning
-            game.scale.refresh();
-            
-            // Restart the current scene to re-layout UI properly
+        }
+
+        // Resize the Phaser game canvas to match new dimensions
+        game.scale.resize(GAME_CONFIG.width, GAME_CONFIG.height);
+        game.scale.refresh();
+
+        // Restart non-gameplay scenes to re-layout UI
+        if (orientationChanged) {
             const currentScene = game.scene.getScenes(true)[0];
             if (currentScene) {
                 const sceneKey = currentScene.scene.key;
-                // Don't restart GameScene during active gameplay to avoid losing progress
                 if (sceneKey !== 'GameScene') {
                     currentScene.scene.restart();
                 }

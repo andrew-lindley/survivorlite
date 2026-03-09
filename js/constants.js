@@ -40,21 +40,29 @@ const DEBUG_CONFIG = {
     }
 };
 
-// Orientation configurations
-const ORIENTATIONS = {
-    landscape: {
-        baseWidth: 597,
-        baseHeight: 381,
-        label: 'Landscape',
-        icon: '📱↔️'
-    },
-    portrait: {
-        baseWidth: 381,
-        baseHeight: 597,
-        label: 'Portrait',
-        icon: '📱↕️'
+// Base width used for layout calculations; height is derived from window aspect ratio
+const BASE_SHORT_SIDE = 381;
+
+// Compute base dimensions from the actual window size
+function computeBaseDimensions() {
+    const w = window.innerWidth || 381;
+    const h = window.innerHeight || 597;
+    if (w > h) {
+        // landscape
+        const baseW = Math.round(BASE_SHORT_SIDE * (w / h));
+        return { landscape: { baseWidth: baseW, baseHeight: BASE_SHORT_SIDE },
+                 portrait:  { baseWidth: BASE_SHORT_SIDE, baseHeight: baseW } };
     }
-};
+    const baseH = Math.round(BASE_SHORT_SIDE * (h / w));
+    return { portrait:  { baseWidth: BASE_SHORT_SIDE, baseHeight: baseH },
+             landscape: { baseWidth: baseH, baseHeight: BASE_SHORT_SIDE } };
+}
+
+const ORIENTATIONS = computeBaseDimensions();
+ORIENTATIONS.portrait.label = 'Portrait';
+ORIENTATIONS.portrait.icon = '📱↕️';
+ORIENTATIONS.landscape.label = 'Landscape';
+ORIENTATIONS.landscape.icon = '📱↔️';
 
 // Default orientation (can be changed at runtime)
 let currentOrientation = 'portrait';
