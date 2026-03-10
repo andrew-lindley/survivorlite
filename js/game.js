@@ -2179,7 +2179,7 @@ const config = {
     height: GAME_CONFIG.height,
     backgroundColor: COLORS.background,
     scale: {
-        mode: Phaser.Scale.FIT,
+        mode: Phaser.Scale.ENVELOP,
         autoCenter: Phaser.Scale.CENTER_BOTH,
     },
     physics: {
@@ -2203,28 +2203,16 @@ const game = new Phaser.Game(config);
         return isLandscape ? 'landscape' : 'portrait';
     }
     
-    // Handle orientation / resize change
+    // Handle orientation change
     function handleOrientationChange() {
         const newOrientation = detectOrientation();
-
-        // Recompute base dimensions from the new window size
-        const dims = computeBaseDimensions();
-        ORIENTATIONS.portrait.baseWidth = dims.portrait.baseWidth;
-        ORIENTATIONS.portrait.baseHeight = dims.portrait.baseHeight;
-        ORIENTATIONS.landscape.baseWidth = dims.landscape.baseWidth;
-        ORIENTATIONS.landscape.baseHeight = dims.landscape.baseHeight;
-
-        const orientationChanged = newOrientation !== currentOrientation;
-        if (orientationChanged) {
+        
+        if (newOrientation !== currentOrientation) {
             setGameOrientation(newOrientation);
-        }
-
-        // Resize the Phaser game canvas to match new dimensions
-        game.scale.resize(GAME_CONFIG.width, GAME_CONFIG.height);
-        game.scale.refresh();
-
-        // Restart non-gameplay scenes to re-layout UI
-        if (orientationChanged) {
+            
+            game.scale.resize(GAME_CONFIG.width, GAME_CONFIG.height);
+            game.scale.refresh();
+            
             const currentScene = game.scene.getScenes(true)[0];
             if (currentScene) {
                 const sceneKey = currentScene.scene.key;
